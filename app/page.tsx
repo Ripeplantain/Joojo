@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import DigitalTwin from "./digital-twin";
 
+const emailHref = "https://mail.google.com/mail/?view=cm&fs=1&to=irvingmanny%40gmail.com&su=Hello%20Emmanuel";
+
 const journey = [
   {
     number: "03",
@@ -190,7 +192,7 @@ export default function Home() {
             <div className="about-copy reveal reveal-two">
               <p>I like working where product thinking meets infrastructure: understanding the need, shaping the model, and shipping something that can keep its footing when the stakes get higher.</p>
               <p>My path has moved from university operations to agency platforms and now enterprise financial products. Each step has made the same thing clearer: good software earns trust through its details.</p>
-              <a className="text-link" href="mailto:irvingmanny@gmail.com">Start a conversation <span aria-hidden="true">-&gt;</span></a>
+              <a className="text-link" href={emailHref} target="_blank" rel="noreferrer">Start a conversation <span aria-hidden="true">-&gt;</span></a>
             </div>
           </div>
           <div className="capability-strip reveal">
@@ -242,7 +244,7 @@ export default function Home() {
         <section className="section-wrap contact-section" id="contact">
           <div className="contact-card reveal">
             <div className="contact-copy"><p className="eyebrow"><span className="status-dot" /> The next chapter</p><h2>Have a hard problem worth making clearer?</h2><p>Tell me what you are building, what is getting in the way, or what you want to explore next.</p></div>
-            <div className="contact-links"><a className="button button-primary" href="mailto:irvingmanny@gmail.com">Email Emmanuel <span aria-hidden="true">-&gt;</span></a><a className="text-link" href="https://github.com/Ripeplantain" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
+            <div className="contact-links"><a className="button button-primary" href={emailHref} target="_blank" rel="noreferrer">Email Emmanuel <span aria-hidden="true">-&gt;</span></a><a className="text-link" href="https://github.com/Ripeplantain" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
           </div>
         </section>
       </main>
