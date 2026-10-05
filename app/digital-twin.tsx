@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 
 const suggestedQuestions = [
   "What does Emmanuel do at Hubtel?",
-  "Tell me about the LendScore platform.",
+  "Tell me about the Lenders Portal.",
   "What is Emmanuel strongest at?",
 ];
 
