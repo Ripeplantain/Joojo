@@ -11,8 +11,8 @@ const journey = [
     company: "Hubtel Limited",
     location: "Accra, Ghana",
     summary:
-      "Building the interfaces and workflows behind lending, agency, and PaySmallSmall products for financial teams.",
-    tags: ["Next.js", "AWS", "ClickHouse"],
+      "Building responsive Vue and Nuxt interfaces for lenders, agencies, financiers, and merchant customers across credit-data and payment platforms.",
+    tags: ["Vue", "Nuxt", "Azure DevOps"],
     current: true,
   },
   {
@@ -22,7 +22,7 @@ const journey = [
     company: "Zerotech Agency",
     location: "US remote",
     summary:
-      "Designed backend services and operational dashboards for business applications, with a sharp focus on reliability.",
+      "Developed RESTful APIs with NestJS and Django, and responsive React and Next.js dashboards for business applications.",
     tags: ["NestJS", "Django", "Terraform"],
   },
   {
@@ -32,7 +32,7 @@ const journey = [
     company: "University of Cape Coast",
     location: "Cape Coast, Ghana",
     summary:
-      "Digitized student-record and administrative workflows, turning manual processes into clearer, faster systems.",
+      "Built internal administration portals during national service, automating reporting and approval workflows and supporting the digitization of student records.",
     tags: ["Laravel", "Python", "Tailwind"],
   },
 ];
@@ -40,18 +40,18 @@ const journey = [
 const projects = [
   {
     index: "01",
-    label: "Financial infrastructure",
-    title: "LendScore",
-    copy: "Secure portals and data workflows for lenders, agencies, financiers, and internal operations teams.",
-    stack: "AWS Cognito / S3 / Playwright / Datadog",
+    label: "Credit data platform",
+    title: "Lenders Portal",
+    copy: "Frontend workflows that let lenders submit credit data to MyCreditScore Bureau and access credit reports for individuals and businesses.",
+    stack: "Borrower search / Credit reports / CSV uploads",
     tone: "project-orange",
   },
   {
     index: "02",
     label: "Payments platform",
     title: "Merchant Invoicing",
-    copy: "A payment and subscription portal that keeps invoices, notifications, and business workflows moving.",
-    stack: "NestJS / PostgreSQL / Redis / Docker",
+    copy: "An invoice payment and receipt portal where Hubtel merchant customers view invoices, pay by card, and retrieve receipts.",
+    stack: "Nuxt 3 / Vue 3 / OAuth / 3DS checkout",
     tone: "project-blue",
   },
   {
@@ -66,7 +66,7 @@ const projects = [
 
 const capabilities = [
   "TypeScript + JavaScript",
-  "React, Next.js + Nuxt.js",
+  "React, Next.js, Vue + Nuxt",
   "NestJS, Django + Laravel",
   "PostgreSQL, Redis + ClickHouse",
   "AWS, Docker + Terraform",
