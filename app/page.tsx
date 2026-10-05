@@ -11,7 +11,7 @@ const journey = [
     company: "Hubtel Limited",
     location: "Accra, Ghana",
     summary:
-      "Building responsive Vue and Nuxt interfaces for lenders, agencies, financiers, and merchant customers across credit-data and payment platforms.",
+      "Build responsive Vue/Nuxt interfaces for lenders, agencies, financiers, and merchant customers across production credit-data and payment platforms. Deliver frontend and backend features for the Agency Portal, integrating user workflows with APIs and supporting services. Collaborate across frontend and backend teams on authentication, payment integrations, access controls, automated testing, and Azure DevOps releases.",
     tags: ["Vue", "Nuxt", "Azure DevOps"],
     current: true,
   },
@@ -22,7 +22,7 @@ const journey = [
     company: "Zerotech Agency",
     location: "US remote",
     summary:
-      "Developed RESTful APIs with NestJS and Django, and responsive React and Next.js dashboards for business applications.",
+      "Developed RESTful APIs with Node.js/NestJS and Python/Django, and responsive React/Next.js dashboards using Material UI. Integrated Twilio and AWS SES APIs for communications, with Redis supporting application workflows. Contributed to microservice design, PostgreSQL-backed services, and CI/CD workflows using GitHub Actions, Docker, AWS, and Terraform.",
     tags: ["NestJS", "Django", "Terraform"],
   },
   {
@@ -32,7 +32,7 @@ const journey = [
     company: "University of Cape Coast",
     location: "Cape Coast, Ghana",
     summary:
-      "Built internal administration portals during national service, automating reporting and approval workflows and supporting the digitization of student records.",
+      "Built internal administration portals with Laravel, Jetstream, Tailwind CSS, and Alpine.js during national service. Automated reporting and approval workflows, analyzed student issues with Python, and supported digitization of student records.",
     tags: ["Laravel", "Python", "Tailwind"],
   },
 ];
@@ -48,19 +48,27 @@ const projects = [
   },
   {
     index: "02",
-    label: "Payments platform",
-    title: "Merchant Invoicing",
-    copy: "An invoice payment and receipt portal where Hubtel merchant customers view invoices, pay by card, and retrieve receipts.",
-    stack: "Nuxt 3 / Vue 3 / OAuth / 3DS checkout",
+    label: "Credit data platform",
+    title: "Agency Backoffice",
+    copy: "Delivered frontend and backend features for the Agency Portal, connecting agency workflows with APIs and supporting services within the wider credit-data platform.",
+    stack: "Frontend + backend / APIs / Agency workflows",
     tone: "project-blue",
   },
   {
     index: "03",
-    label: "Next up",
-    title: "Portfolio / 2026",
-    copy: "A growing archive of product work, technical notes, and experiments. This is the first marker.",
-    stack: "Case studies loading",
+    label: "Digital payments + overdrafts",
+    title: "PaySmallSmall Backoffice",
+    copy: "Built backoffice applications for financiers and Hubtel internal operations teams supporting PaySmallSmall, a digital payment and overdraft solution for Albrim Microfinance.",
+    stack: "Financier portal / Internal operations / Supporting services",
     tone: "project-green",
+  },
+  {
+    index: "04",
+    label: "Merchant payments",
+    title: "Merchant Invoicing Platform",
+    copy: "Built Nuxt 3 and Vue 3 invoice listing, detail, payment-status, and receipt experiences, including OAuth, secure tenant sessions, bot protection, and OTP/3DS card payments through Hubtel Unified Checkout.",
+    stack: "Nuxt 3 / Vue 3 / OAuth / 3DS checkout",
+    tone: "project-orange",
   },
 ];
 
@@ -68,9 +76,9 @@ const capabilities = [
   "TypeScript + JavaScript",
   "React, Next.js, Vue + Nuxt",
   "NestJS, Django + Laravel",
-  "PostgreSQL, Redis + ClickHouse",
+  "PostgreSQL, Redis + MongoDB",
   "AWS, Docker + Terraform",
-  "AI agents, RAG + LLM integration",
+  "AI + third-party API integration",
 ];
 
 export default function Home() {

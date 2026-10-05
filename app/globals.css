@@ -120,7 +120,7 @@ h2 { font-size: clamp(36px, 4.4vw, 61px); line-height: .98; letter-spacing: -.05
 .section-kicker-light::after { background: rgba(229,255,90,.33); }
 .portfolio-intro { display: grid; grid-template-columns: 1fr .7fr; gap: 100px; align-items: end; margin-top: 50px; }
 .portfolio-intro p { color: #a7b8b4; }
-.project-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 68px; }
+.project-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 68px; }
 .project-card { min-height: 395px; padding: 19px; display: flex; flex-direction: column; color: var(--ink); transition: transform .25s ease, box-shadow .25s ease; }
 .project-card:hover { transform: translateY(-8px); box-shadow: 10px 10px 0 rgba(229,255,90,.75); }
 .project-orange { background: var(--orange); }
@@ -219,7 +219,6 @@ h2 { font-size: clamp(36px, 4.4vw, 61px); line-height: .98; letter-spacing: -.05
   .about-grid, .journey-intro, .portfolio-intro, .contact-card { grid-template-columns: 1fr; gap: 28px; }
   .about-copy { max-width: 580px; }
   .project-grid { grid-template-columns: 1fr 1fr; }
-  .project-card:last-child { grid-column: 1 / -1; min-height: 330px; }
   .chatbot { right: 21px; bottom: 21px; }
 }
 @media (max-width: 560px) {
