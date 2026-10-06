@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DigitalTwin from "./digital-twin";
 
 const emailHref = "https://mail.google.com/mail/?view=cm&fs=1&to=irvingmanny%40gmail.com&su=Hello%20Emmanuel";
@@ -45,6 +45,10 @@ const projects = [
     label: "Credit data platform",
     title: "Lenders Portal",
     copy: "Frontend workflows that let lenders submit credit data to MyCreditScore Bureau and access credit reports for individuals and businesses.",
+    detail: "A lender-facing portal for submitting bureau data and retrieving credit reports for people and businesses.",
+    contribution: "Built the responsive workflows around borrower search, CSV uploads, and report access.",
+    impact: "Brings borrower search, data uploads, and credit reports into one lender workflow.",
+    tools: ["Vue", "Nuxt", "APIs", "CSV workflows"],
     stack: "Borrower search / Credit reports / CSV uploads",
     tone: "project-orange",
   },
@@ -53,6 +57,10 @@ const projects = [
     label: "Credit data platform",
     title: "Agency Backoffice",
     copy: "Delivered frontend and backend features for the Agency Portal, connecting agency workflows with APIs and supporting services within the wider credit-data platform.",
+    detail: "An agency operations backoffice inside the wider credit-data platform.",
+    contribution: "Delivered frontend and backend features that connected agency workflows to APIs and supporting services.",
+    impact: "Turns complex agency operations into a clearer backoffice experience connected to the wider platform.",
+    tools: ["Vue", "Nuxt", "APIs", "Access controls"],
     stack: "Frontend + backend / APIs / Agency workflows",
     tone: "project-blue",
   },
@@ -61,6 +69,10 @@ const projects = [
     label: "Digital payments + overdrafts",
     title: "PaySmallSmall Backoffice",
     copy: "Built backoffice applications for financiers and Hubtel internal operations teams supporting PaySmallSmall, a digital payment and overdraft solution for Albrim Microfinance.",
+    detail: "Backoffice applications supporting financiers and internal operations for a digital payment and overdraft product.",
+    contribution: "Built focused surfaces for teams supporting PaySmallSmall workflows across financier and internal operations.",
+    impact: "Gives financiers and operations teams a focused surface for supporting payment and overdraft workflows.",
+    tools: ["Vue", "Nuxt", "Payment integrations", "Internal tools"],
     stack: "Financier portal / Internal operations / Supporting services",
     tone: "project-green",
   },
@@ -69,6 +81,10 @@ const projects = [
     label: "Merchant payments",
     title: "Merchant Invoicing Platform",
     copy: "Built Nuxt 3 and Vue 3 invoice listing, detail, payment-status, and receipt experiences, including OAuth, secure tenant sessions, bot protection, and OTP/3DS card payments through Hubtel Unified Checkout.",
+    detail: "A merchant invoicing experience that connects invoice discovery, payment status, and receipts.",
+    contribution: "Built invoice listing, detail, payment-status, and receipt experiences with secure tenant sessions and checkout flows.",
+    impact: "Connects invoice discovery, payment status, and receipts into one secure merchant journey.",
+    tools: ["Nuxt 3", "Vue 3", "OAuth", "OTP / 3DS", "Unified Checkout"],
     stack: "Nuxt 3 / Vue 3 / OAuth / 3DS checkout",
     tone: "project-orange",
   },
@@ -85,6 +101,8 @@ const capabilities = [
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("home");
+  const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
+  const modalCloseRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const sections = ["home", "about", "journey", "portfolio", "contact"];
@@ -105,6 +123,24 @@ export default function Home() {
 
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!selectedProject) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    modalCloseRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedProject(null);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedProject]);
 
   return (
     <div className="site-shell">
@@ -135,41 +171,38 @@ export default function Home() {
         <section className="hero section-wrap" id="home">
           <div className="hero-copy reveal reveal-one">
             <p className="eyebrow"><span className="status-dot" /> Software engineer / Accra, Ghana</p>
-            <h1>I build the systems behind <em>better decisions.</em></h1>
+            <h1>I build the quiet systems behind <em>better decisions.</em></h1>
             <p className="hero-lede">
-              Full-stack engineer working across financial platforms, cloud infrastructure, and AI-powered products. I care about the quiet engineering that makes important work feel simple.
+              I&apos;m a software engineer in Accra, Ghana, working across financial platforms, cloud infrastructure, and AI-powered products. I care about the quiet engineering that makes important work feel simple.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#journey">Explore the journey <span aria-hidden="true">-&gt;</span></a>
-              <a className="text-link" href="https://www.linkedin.com/in/emmanuel-gyang" target="_blank" rel="noreferrer">LinkedIn profile <span aria-hidden="true">↗</span></a>
+              <a className="button button-primary" href="#portfolio">See selected work <span aria-hidden="true">-&gt;</span></a>
+              <a className="text-link" href={emailHref} target="_blank" rel="noreferrer">Say hello <span aria-hidden="true">↗</span></a>
             </div>
             <div className="hero-meta">
               <span>Currently at <strong>Hubtel</strong></span>
               <span className="meta-divider" />
-              <span>Open to thoughtful collaborations</span>
+              <span>Interested in thoughtful collaborations</span>
             </div>
           </div>
 
           <div className="signal-panel reveal reveal-two" aria-label="Current engineering focus">
             <div className="panel-header">
-              <span>Signal / 01</span>
-              <span className="panel-live"><span className="status-dot" /> live focus</span>
+              <span>Field note / 01</span>
+              <span className="panel-live"><span className="status-dot" /> currently building</span>
             </div>
-            <div className="signal-visual" aria-hidden="true">
+            <div className="signal-visual note-visual" aria-hidden="true">
               <div className="signal-grid" />
-              <div className="signal-line line-one" />
-              <div className="signal-line line-two" />
-              <div className="signal-line line-three" />
-              <div className="signal-node node-core"><span>core</span></div>
-              <div className="signal-node node-data"><span>data</span></div>
-              <div className="signal-node node-people"><span>people</span></div>
-              <div className="signal-node node-scale"><span>scale</span></div>
-              <div className="signal-caption">Secure by default<br />Useful under pressure</div>
+              <div className="note-rule note-rule-one" />
+              <div className="note-rule note-rule-two" />
+              <div className="note-stamp">EG</div>
+              <div className="note-copy">Good software<br /><em>earns trust</em><br />through the details.</div>
+              <div className="signal-caption">Accra / Ghana<br />06.10.26</div>
             </div>
             <div className="signal-footer">
               <div><strong>04+</strong><span>years building</span></div>
               <div><strong>03</strong><span>domains explored</span></div>
-              <div><strong>01</strong><span>north star</span></div>
+              <div><strong>01</strong><span>digital twin</span></div>
             </div>
           </div>
         </section>
@@ -229,17 +262,56 @@ export default function Home() {
             <div className="portfolio-intro"><h2 className="reveal reveal-one">Work with a point of view.</h2><p className="reveal reveal-two">A few systems I have helped make more legible, more resilient, and more useful.</p></div>
             <div className="project-grid">
               {projects.map((project) => (
-                <article className={`project-card ${project.tone}`} key={project.title}>
+                <article
+                  className={`project-card ${project.tone}`}
+                  key={project.title}
+                  role="button"
+                  tabIndex={0}
+                  aria-haspopup="dialog"
+                  aria-label={`View details for ${project.title}`}
+                  onClick={() => setSelectedProject(project)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setSelectedProject(project);
+                    }
+                  }}
+                >
                   <div className="project-top"><span>{project.index}</span><span>{project.label}</span></div>
                   <div className="project-art" aria-hidden="true"><span className="project-art-line" /><span className="project-art-square" /><span className="project-art-dot" /></div>
                   <h3>{project.title}</h3>
                   <p>{project.copy}</p>
+                  <div className="project-impact"><span>Why it matters</span><p>{project.impact}</p></div>
                   <div className="project-bottom"><span>{project.stack}</span><span className="card-arrow" aria-hidden="true">-&gt;</span></div>
                 </article>
               ))}
             </div>
           </div>
         </section>
+
+        {selectedProject && (
+          <div
+            className="project-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setSelectedProject(null);
+            }}
+          >
+            <section className={`project-modal ${selectedProject.tone}`} role="dialog" aria-modal="true" aria-labelledby="project-modal-title" aria-describedby="project-modal-summary">
+              <div className="project-modal-top">
+                <span>{selectedProject.index} / {selectedProject.label}</span>
+                <button className="project-modal-close" ref={modalCloseRef} type="button" onClick={() => setSelectedProject(null)} aria-label="Close project details">Close <span aria-hidden="true">×</span></button>
+              </div>
+              <h2 id="project-modal-title">{selectedProject.title}</h2>
+              <p className="project-modal-summary" id="project-modal-summary">{selectedProject.detail}</p>
+              <div className="project-modal-grid">
+                <div className="project-modal-field"><span>My contribution</span><p>{selectedProject.contribution}</p></div>
+                <div className="project-modal-field"><span>Impact</span><p>{selectedProject.impact}</p></div>
+              </div>
+              <div className="project-modal-tools"><span>Tools &amp; technologies</span><div>{selectedProject.tools.map((tool) => <span key={tool}>{tool}</span>)}</div></div>
+            </section>
+          </div>
+        )}
 
         <section className="section-wrap contact-section" id="contact">
           <div className="contact-card reveal">

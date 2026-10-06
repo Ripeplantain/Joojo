@@ -83,10 +83,21 @@ export default function DigitalTwin() {
         >
           <span className="chatbot-hover-copy">hi want to know more about emmanuel</span>
           <span className="chatbot-pulse" aria-hidden="true" />
-          <span className="chatbot-glyph" aria-hidden="true"><span /></span>
+          <span className="chatbot-glyph" aria-hidden="true">
+            <svg viewBox="0 0 48 48" role="img" aria-label="Robot assistant">
+              <path className="robot-antenna" d="M24 7v5" />
+              <circle className="robot-light" cx="24" cy="5" r="2" />
+              <rect className="robot-shell" x="8" y="12" width="32" height="25" rx="8" />
+              <circle className="robot-eye" cx="18" cy="24" r="2.5" />
+              <circle className="robot-eye" cx="30" cy="24" r="2.5" />
+              <path className="robot-mouth" d="M18 30c3 2 9 2 12 0" />
+              <path className="robot-ear" d="M8 22H5v7h3M40 22h3v7h-3" />
+            </svg>
+          </span>
         </button>
+        <span className="chatbot-splash-copy" aria-hidden="true">Meet Joojo <span>Ask about Emmanuel&apos;s work</span></span>
         <button className="chatbot-label" type="button" onClick={() => setIsOpen(true)} aria-controls="emmanuel-chatbot-panel">
-          let&apos;s chat
+          Chat with Joojo
         </button>
       </div>
     </aside>
