@@ -9,7 +9,7 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 export const maxDuration = 30;
 
-const MODEL = "~openai/gpt-sol-latest";
+const MODEL = "~openai/gpt-luna-latest";
 
 const DIGITAL_TWIN_INSTRUCTIONS = `You are Joojo, Emmanuel Gyang's digital twin, a warm and thoughtful career guide embedded in his portfolio.
 
