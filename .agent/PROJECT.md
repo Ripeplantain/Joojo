@@ -10,7 +10,7 @@ Single-page portfolio site for Emmanuel Gyang, with **Joojo**, an AI "digital tw
 | Languages | TypeScript (strict), CSS. Node.js 20 or later |
 | Frameworks | Next.js 16.3 (App Router), React 19, AI SDK (`ai` 7, `@ai-sdk/react` 4) with `@openrouter/ai-sdk-provider` |
 | Package manager | npm (`package-lock.json`). Ignore `pnpm-lock.yaml` and `pnpm-workspace.yaml`; they are leftovers |
-| Deployed via | Vercel, with `OPENROUTER_API_KEY` set in the project's environment variables |
+| Deployed via | Vercel, with `OPENROUTER_API_KEY` and `CHAT_TOKEN_SECRET` set in the project's environment variables |
 
 ## Commands
 
@@ -36,7 +36,7 @@ Everything is in `app/`. There is one route (`/`) and one API endpoint (`POST /a
 - `app/digital-twin.tsx` is the chat widget, mounted at the bottom of `page.tsx`.
 - `app/api/chat/route.ts` holds the model id (`MODEL`), the system prompt (`DIGITAL_TWIN_INSTRUCTIONS`), and the handler.
 
-Chat flow: `useChat` with `DefaultChatTransport({ api: "/api/chat" })` in `digital-twin.tsx` posts `UIMessage[]` → `route.ts` returns `503` if `OPENROUTER_API_KEY` is unset, otherwise calls `streamText` through OpenRouter (`maxOutputTokens: 700`, `maxDuration = 30`) → the response streams back with `createUIMessageStreamResponse` and the widget renders the `text` parts of each message.
+Chat flow: `useChat` with `DefaultChatTransport({ api: "/api/chat", headers: chatHeaders })` in `digital-twin.tsx` first gets a token from `GET /api/chat` (same-origin only, HMAC-signed with `CHAT_TOKEN_SECRET`, valid 10 minutes, cached in the module) and posts `UIMessage[]` with it in the `x-chat-token` header → `route.ts` returns `503` if `OPENROUTER_API_KEY` or `CHAT_TOKEN_SECRET` is unset, `401` if the request is not same-origin or the token is missing, invalid, or expired, and `413` if the body is over `MAX_BODY_CHARS`; otherwise it calls `streamText` through OpenRouter (`maxOutputTokens: 700`, `maxDuration = 30`) → the response streams back with `createUIMessageStreamResponse` and the widget renders the `text` parts of each message.
 
 ## Important directories
 
@@ -59,8 +59,8 @@ Do not edit: `next-env.d.ts`, `.next/`, `tsconfig.tsbuildinfo`, and the `nextjs-
 
 - **Profile content lives in two places.** The arrays in `app/page.tsx` and the verified profile in `DIGITAL_TWIN_INSTRUCTIONS` must agree. A change to one is a change to both.
 - **Career facts need the owner's confirmation.** Do not add or alter employers, dates, projects, skills, or credentials on your own.
-- **`POST /api/chat` is public and calls a paid model, with no rate limiting.** Do not raise `maxOutputTokens`, loosen the system prompt's scope, or add tools to the model call without flagging the cost and abuse implications.
-- **`.env` holds the real `OPENROUTER_API_KEY`.** Do not open, print, or commit it. The key is read only in `app/api/chat/route.ts` and must never reach a client component.
+- **`POST /api/chat` calls a paid model, with no rate limiting.** The same-origin check and signed token stop other sites and direct posts, not a script that fetches a token first. Do not weaken those checks, raise `maxOutputTokens`, loosen the system prompt's scope, or add tools to the model call without flagging the cost and abuse implications.
+- **`.env` holds the real `OPENROUTER_API_KEY` and `CHAT_TOKEN_SECRET`.** Do not open, print, or commit it. Both are read only in `app/api/chat/route.ts` and must never reach a client component.
 
 ## Canonical documentation
 

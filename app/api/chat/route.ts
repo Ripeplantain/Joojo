@@ -6,10 +6,14 @@ import {
   type UIMessage,
 } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const maxDuration = 30;
 
 const MODEL = "~openai/gpt-luna-latest";
+const TOKEN_HEADER = "x-chat-token";
+const TOKEN_TTL_MS = 10 * 60 * 1000;
+const MAX_BODY_CHARS = 60_000;
 
 const DIGITAL_TWIN_INSTRUCTIONS = `You are Joojo, Emmanuel Gyang's digital twin, a warm and thoughtful career guide embedded in his portfolio.
 
@@ -33,12 +37,58 @@ Verified profile:
 
 Do not invent employers, dates, project metrics, clients, or personal details. Avoid claiming that Emmanuel is available for a specific job unless the visitor asks about collaborations; then say the portfolio invites thoughtful collaborations and direct them to email.`;
 
-export async function POST(req: Request) {
-  if (!process.env.OPENROUTER_API_KEY) {
-    return new Response("OPENROUTER_API_KEY is not configured.", { status: 503 });
+function isSameOrigin(req: Request) {
+  const site = req.headers.get("sec-fetch-site");
+  if (site) return site === "same-origin";
+
+  const source = req.headers.get("origin") ?? req.headers.get("referer");
+  return !!source && URL.canParse(source) && new URL(source).host === req.headers.get("host");
+}
+
+function signToken(expiresAt: number, secret: string) {
+  return createHmac("sha256", secret).update(String(expiresAt)).digest("base64url");
+}
+
+function isValidToken(token: string | null, secret: string) {
+  const [expiresAt, signature] = token?.split(".") ?? [];
+  if (!signature || !(Number(expiresAt) > Date.now())) return false;
+
+  const expected = Buffer.from(signToken(Number(expiresAt), secret));
+  const given = Buffer.from(signature);
+  return given.length === expected.length && timingSafeEqual(given, expected);
+}
+
+export async function GET(req: Request) {
+  const secret = process.env.CHAT_TOKEN_SECRET;
+  if (!secret) {
+    return new Response("CHAT_TOKEN_SECRET is not configured.", { status: 503 });
+  }
+  if (!isSameOrigin(req)) {
+    return new Response("Forbidden.", { status: 403 });
   }
 
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  const expiresAt = Date.now() + TOKEN_TTL_MS;
+  return Response.json(
+    { token: `${expiresAt}.${signToken(expiresAt, secret)}`, expiresAt },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+export async function POST(req: Request) {
+  const secret = process.env.CHAT_TOKEN_SECRET;
+  if (!process.env.OPENROUTER_API_KEY || !secret) {
+    return new Response("OPENROUTER_API_KEY or CHAT_TOKEN_SECRET is not configured.", { status: 503 });
+  }
+  if (!isSameOrigin(req) || !isValidToken(req.headers.get(TOKEN_HEADER), secret)) {
+    return new Response("Unauthorized.", { status: 401 });
+  }
+
+  const body = await req.text();
+  if (body.length > MAX_BODY_CHARS) {
+    return new Response("Conversation is too long.", { status: 413 });
+  }
+
+  const { messages }: { messages: UIMessage[] } = JSON.parse(body);
   const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
   const result = streamText({
     model: openrouter(MODEL),

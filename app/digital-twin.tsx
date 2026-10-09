@@ -10,12 +10,23 @@ const suggestedQuestions = [
   "What is Emmanuel strongest at?",
 ];
 
+let chatToken: { token: string; expiresAt: number } | null = null;
+
+async function chatHeaders() {
+  if (!chatToken || chatToken.expiresAt - Date.now() < 30_000) {
+    const response = await fetch("/api/chat");
+    if (!response.ok) throw new Error("Could not start a chat session.");
+    chatToken = await response.json();
+  }
+  return { "x-chat-token": chatToken!.token };
+}
+
 export default function DigitalTwin() {
   const [input, setInput] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const { messages, sendMessage, status, error, stop } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({ api: "/api/chat", headers: chatHeaders }),
   });
   const isBusy = status === "submitted" || status === "streaming";
 

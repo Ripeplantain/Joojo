@@ -33,9 +33,10 @@ Create a `.env` file in the project root:
 
 ```bash
 OPENROUTER_API_KEY=your_key_here
+CHAT_TOKEN_SECRET=a_long_random_string
 ```
 
-Without the key the site still renders, but `POST /api/chat` returns a `503`.
+`CHAT_TOKEN_SECRET` signs the short-lived tokens the chat widget needs to call the endpoint; generate one with `openssl rand -base64 32`. Without both values the site still renders, but `/api/chat` returns a `503`.
 
 ### Run
 
@@ -67,8 +68,8 @@ public/               Static assets, including the downloadable resume PDF
 
 ## Notes
 
-- The chat endpoint is public and calls a paid model. Before deploying, add rate limiting and a spend limit on your OpenRouter key. See [review.md](review.md) for more detail.
+- The chat endpoint calls a paid model. It only accepts same-origin requests carrying a short-lived signed token, which stops other sites and direct posts but not a script that fetches a token first. Before deploying, add rate limiting and a spend limit on your OpenRouter key. See [review.md](review.md) for more detail.
 
 ## Deployment
 
-The app deploys to any Next.js host, such as [Vercel](https://vercel.com). Set `OPENROUTER_API_KEY` in the host's environment variables.
+The app deploys to any Next.js host, such as [Vercel](https://vercel.com). Set `OPENROUTER_API_KEY` and `CHAT_TOKEN_SECRET` in the host's environment variables.
