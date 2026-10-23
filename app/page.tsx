@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DigitalTwin from "./digital-twin";
 
 const emailHref = "https://mail.google.com/mail/?view=cm&fs=1&to=irvingmanny%40gmail.com&su=Hello%20Emmanuel";
+const resumeHref = "/Emmanuel%20Gyang%20%E2%80%94%20Software%20Engineer%20Resume.pdf";
+const navItems = ["about", "journey", "portfolio", "contact"];
 
 const journey = [
   {
@@ -99,36 +101,23 @@ const capabilities = [
   "AI + third-party API integration",
 ];
 
+type Project = (typeof projects)[number];
+
+const ACTIVE_LINK_CLASS = ":target-current";
+
 export default function Home() {
-  const [activeSection, setActiveSection] = useState("home");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
-  const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
+  const [activeProject, setActiveProject] = useState(0);
+  const [openProject, setOpenProject] = useState<Project | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const modalCloseRef = useRef<HTMLButtonElement>(null);
+  const deckRef = useRef<HTMLDivElement>(null);
+  const navSheetRef = useRef<HTMLDialogElement>(null);
+  const projectDialogRef = useRef<HTMLDialogElement>(null);
 
+  // One-shot reveal for content. Deliberately not scroll-linked: text should not
+  // re-animate every time the reader scrolls back past it.
   useEffect(() => {
-    const sections = ["home", "about", "journey", "portfolio", "contact"];
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible?.target.id) setActiveSection(visible.target.id);
-      },
-      { rootMargin: "-30% 0px -55%", threshold: [0.1, 0.3, 0.6] },
-    );
-
-    sections.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) observer.observe(element);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
+    document.documentElement.classList.add("reveal-ready");
     const elements = document.querySelectorAll<HTMLElement>(".reveal");
     const observer = new IntersectionObserver(
       (entries) => {
@@ -146,25 +135,118 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
+  // Nav highlighting. Chrome/Edge get native `scroll-target-group`; everything
+  // else falls back to IntersectionObserver. aria-current is synced either way.
   useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-nav] a"));
+    if (links.length === 0) return;
 
+    if (CSS.supports("scroll-target-group: auto")) {
+      const syncAria = () => {
+        links.forEach((link) => {
+          link.setAttribute("aria-current", link.matches(":target-current") ? "true" : "false");
+        });
+      };
+      syncAria();
+      document.addEventListener("scrollend", syncAria);
+      return () => document.removeEventListener("scrollend", syncAria);
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible?.target.id) return;
+        links.forEach((link) => {
+          const isActive = link.getAttribute("href") === `#${visible.target.id}`;
+          link.classList.toggle(ACTIVE_LINK_CLASS, isActive);
+          link.setAttribute("aria-current", isActive ? "true" : "false");
+        });
+      },
+      { rootMargin: "-30% 0px -55%", threshold: [0.1, 0.3, 0.6] },
+    );
+
+    navItems.forEach((id) => {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // Which card is centred in the snap carousel. Measured from geometry rather
+  // than intersection ratios, because two cards can be fully visible at once.
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck) return;
     let frame = 0;
-    const update = () => {
-      hero.style.setProperty("--hero-shift", `${Math.min(window.scrollY * 0.18, 180)}px`);
+
+    const measure = () => {
       frame = 0;
-    };
-    const handleScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
+      const cards = Array.from(deck.querySelectorAll<HTMLElement>("[data-card-index]"));
+      if (cards.length === 0) return;
+      const deckRect = deck.getBoundingClientRect();
+      const deckCentre = deckRect.left + deckRect.width / 2;
+      let nearest = 0;
+      let shortest = Infinity;
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const distance = Math.abs(rect.left + rect.width / 2 - deckCentre);
+        if (distance < shortest) {
+          shortest = distance;
+          nearest = Number(card.dataset.cardIndex);
+        }
+      });
+      setActiveProject(nearest);
     };
 
-    update();
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(measure);
+    };
+
+    measure();
+    deck.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      deck.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
+  }, []);
+
+  useEffect(() => {
+    const dialog = projectDialogRef.current;
+    if (dialog && openProject && !dialog.open) dialog.showModal();
+  }, [openProject]);
+
+  // Safari has no `closedby`, so light dismiss is wired up by hand there.
+  useEffect(() => {
+    if ("closedBy" in HTMLDialogElement.prototype) return;
+    const dialogs = [navSheetRef.current, projectDialogRef.current].filter(Boolean) as HTMLDialogElement[];
+
+    const closeOnBackdrop = (event: MouseEvent) => {
+      const dialog = event.currentTarget as HTMLDialogElement;
+      if (event.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      const insideDialog =
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width;
+      if (!insideDialog) dialog.close();
+    };
+
+    dialogs.forEach((dialog) => dialog.addEventListener("click", closeOnBackdrop));
+    return () => dialogs.forEach((dialog) => dialog.removeEventListener("click", closeOnBackdrop));
+  }, []);
+
+  const goToProject = useCallback((index: number) => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    const clamped = Math.max(0, Math.min(projects.length - 1, index));
+    deck
+      .querySelector<HTMLElement>(`[data-card-index="${clamped}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, []);
 
   useEffect(() => {
@@ -209,18 +291,18 @@ export default function Home() {
       void main() {
         vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
         uv *= 0.72;
-        float t = time * 0.09;
+        float t = time * 0.075;
         vec2 warp = vec2(fbm(uv * 1.35 + vec2(t, -t)), fbm(uv * 1.2 + vec2(-t, t * 0.7)));
         float flow = fbm(uv * 2.0 + warp * 2.25 + vec2(t * 1.5, -t));
-        float ribbon = smoothstep(0.38, 0.74, sin((uv.x + uv.y * 0.72 + flow * 0.8) * 4.0) * 0.5 + 0.5);
-        vec3 baseA = vec3(0.035, 0.043, 0.075);
-        vec3 baseB = vec3(0.075, 0.13, 0.24);
-        vec3 blue = vec3(0.08, 0.32, 0.78);
+        float ribbon = smoothstep(0.36, 0.76, sin((uv.x + uv.y * 0.72 + flow * 0.8) * 4.0) * 0.5 + 0.5);
+        vec3 baseA = vec3(0.024, 0.027, 0.043);
+        vec3 baseB = vec3(0.055, 0.078, 0.137);
+        vec3 accent = vec3(0.302, 0.517, 0.953);
         vec3 color = mix(baseA, baseB, flow);
-        color = mix(color, blue, ribbon * 0.42);
-        color += pow(flow, 5.0) * vec3(0.18, 0.25, 0.42);
+        color = mix(color, accent, ribbon * 0.38);
+        color += pow(flow, 5.0) * vec3(0.16, 0.24, 0.44);
         float vignette = 1.0 - smoothstep(0.45, 1.45, length(uv));
-        gl_FragColor = vec4(color * (0.55 + vignette * 0.65), 1.0);
+        gl_FragColor = vec4(color * (0.52 + vignette * 0.68), 1.0);
       }
     `;
 
@@ -302,114 +384,88 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [mobileMenuOpen]);
-
-  useEffect(() => {
-    if (!selectedProject) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    modalCloseRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedProject(null);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedProject]);
-
-  const cycleProject = (direction: number) => {
-    setActiveProjectIndex((current) => (current + direction + projects.length) % projects.length);
-  };
-
   return (
     <div className="site-shell">
+      <div className="scroll-progress" aria-hidden="true" />
       <div className="grain" aria-hidden="true" />
+
       <header className="topbar">
-        <a className="wordmark" href="#home" aria-label="Emmanuel Gyang home">
-          <span className="wordmark-mark">EG</span>
-          <span>Emmanuel Gyang</span>
-        </a>
-        <nav className="nav-links" aria-label="Primary navigation">
-          {[
-            ["about", "about"],
-            ["journey", "journey"],
-            ["portfolio", "portfolio"],
-            ["contact", "contact"],
-          ].map(([label, href]) => (
-            <a className={activeSection === href ? "active" : ""} href={`#${href}`} key={href}>
-              {label}
+        <div className="topbar-inner">
+          <a className="wordmark" href="#home" aria-label="Emmanuel Gyang home">
+            <span className="wordmark-mark">EG</span>
+            <span>Emmanuel Gyang</span>
+          </a>
+          <nav className="nav-links" data-nav aria-label="Primary navigation">
+            {navItems.map((item) => (
+              <a href={`#${item}`} key={item}>{item}</a>
+            ))}
+          </nav>
+          <a className="topbar-cta" href={resumeHref} download>Download CV <span aria-hidden="true">[PDF]</span></a>
+          <button className="menu-toggle" type="button" aria-label="Open navigation" onClick={() => navSheetRef.current?.showModal()}>
+            <span /><span />
+          </button>
+        </div>
+      </header>
+
+      <dialog className="nav-sheet" ref={navSheetRef} aria-label="Navigation" {...{ closedby: "any" }}>
+        <div className="nav-sheet-top">
+          <span className="eyebrow">Menu</span>
+          <button className="nav-sheet-close" type="button" onClick={() => navSheetRef.current?.close()}>Close <span aria-hidden="true">×</span></button>
+        </div>
+        <nav data-nav aria-label="Mobile navigation">
+          {navItems.map((item, index) => (
+            <a href={`#${item}`} key={item} onClick={() => navSheetRef.current?.close()}>
+              <span>0{index + 1}</span>{item}
             </a>
           ))}
         </nav>
-        <a className="topbar-link" href="/Emmanuel%20Gyang%20%E2%80%94%20Software%20Engineer%20Resume.pdf" download>
-          Download CV <span aria-hidden="true">[PDF]</span>
-        </a>
-        <button className="menu-toggle" type="button" aria-label="Open navigation" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}><span /><span /></button>
-      </header>
-
-      <div className={`mobile-menu ${mobileMenuOpen ? "is-open" : ""}`} aria-hidden={!mobileMenuOpen}>
-        <button className="mobile-menu-close" type="button" aria-label="Close navigation" onClick={() => setMobileMenuOpen(false)}>Close <span aria-hidden="true">×</span></button>
-        <nav aria-label="Mobile navigation">
-          {["about", "journey", "portfolio", "contact"].map((item, index) => (
-            <a href={`#${item}`} key={item} tabIndex={mobileMenuOpen ? 0 : -1} onClick={() => setMobileMenuOpen(false)}><span>0{index + 1}</span>{item}</a>
-          ))}
-        </nav>
-        <a className="mobile-cv" href="/Emmanuel%20Gyang%20%E2%80%94%20Software%20Engineer%20Resume.pdf" download tabIndex={mobileMenuOpen ? 0 : -1}>Download CV <span aria-hidden="true">[PDF]</span></a>
-      </div>
+        <a className="nav-sheet-cta" href={resumeHref} download>Download CV <span aria-hidden="true">[PDF]</span></a>
+      </dialog>
 
       <main>
         <section className="hero" id="home" ref={heroRef}>
           <canvas className="hero-canvas" ref={canvasRef} aria-hidden="true" />
-          <div className="hero-glow" aria-hidden="true" />
-          <div className="hero-copy section-wrap reveal reveal-one">
-            <p className="eyebrow"><span className="status-dot" /> Software engineer / Accra, Ghana</p>
-            <h1>I build the quiet systems behind <em>better decisions.</em></h1>
-            <p className="hero-lede">
-              I&apos;m a software engineer in Accra, Ghana, working across financial platforms, cloud infrastructure, and AI-powered products. I care about the quiet engineering that makes important work feel simple.
-            </p>
-            <div className="hero-actions">
-              <a className="button button-primary" href="#portfolio">See selected work <span aria-hidden="true">-&gt;</span></a>
-              <a className="text-link" href={emailHref} target="_blank" rel="noreferrer">Say hello <span aria-hidden="true">↗</span></a>
+          <div className="hero-grid" aria-hidden="true" />
+          <div className="hero-veil" aria-hidden="true" />
+          <div className="hero-body">
+            <div className="hero-copy">
+              <p className="eyebrow reveal"><span className="status-dot" /> Software engineer / Accra, Ghana</p>
+              <h1 className="reveal reveal-one">I build the quiet systems behind <em>better decisions.</em></h1>
+              <p className="hero-lede reveal reveal-two">
+                I&apos;m a software engineer in Accra, Ghana, working across financial platforms, cloud infrastructure, and AI-powered products. I care about the quiet engineering that makes important work feel simple.
+              </p>
+              <div className="hero-actions reveal reveal-two">
+                <a className="button button-primary" href="#portfolio">See selected work <span aria-hidden="true">-&gt;</span></a>
+                <a className="button button-ghost" href={emailHref} target="_blank" rel="noreferrer">Say hello <span aria-hidden="true">↗</span></a>
+              </div>
+              <div className="hero-meta reveal reveal-two">
+                <span>Currently at <strong>Hubtel</strong></span>
+                <span className="meta-divider" />
+                <span>Interested in thoughtful collaborations</span>
+              </div>
+              <a className="hero-scroll" href="#about"><span>Scroll to explore</span><i aria-hidden="true" /></a>
             </div>
-            <div className="hero-meta">
-              <span>Currently at <strong>Hubtel</strong></span>
-              <span className="meta-divider" />
-              <span>Interested in thoughtful collaborations</span>
-            </div>
-          </div>
 
-          <div className="signal-panel reveal reveal-two" aria-label="Current engineering focus">
-            <div className="panel-header">
-              <span>Field note / 01</span>
-              <span className="panel-live"><span className="status-dot" /> currently building</span>
-            </div>
-            <div className="signal-visual note-visual" aria-hidden="true">
-              <div className="signal-grid" />
-              <div className="note-rule note-rule-one" />
-              <div className="note-rule note-rule-two" />
-              <div className="note-stamp">EG</div>
-              <div className="note-copy">Good software<br /><em>earns trust</em><br />through the details.</div>
-              <div className="signal-caption">Accra / Ghana<br />06.10.26</div>
-            </div>
-            <div className="signal-footer">
-              <div><strong>04+</strong><span>years building</span></div>
-              <div><strong>03</strong><span>domains explored</span></div>
-              <div><strong>01</strong><span>digital twin</span></div>
-            </div>
+            <aside className="signal-panel reveal reveal-two" aria-label="Current engineering focus">
+              <div className="panel-header">
+                <span>Field note / 01</span>
+                <span className="panel-live"><span className="status-dot" /> currently building</span>
+              </div>
+              <div className="note-visual" aria-hidden="true">
+                <div className="signal-grid" />
+                <div className="note-rule note-rule-one" />
+                <div className="note-rule note-rule-two" />
+                <div className="note-stamp">EG</div>
+                <div className="note-copy">Good software<br /><em>earns trust</em><br />through the details.</div>
+                <div className="signal-caption">Accra / Ghana<br />06.10.26</div>
+              </div>
+              <div className="signal-footer">
+                <div><strong>04+</strong><span>years building</span></div>
+                <div><strong>03</strong><span>domains explored</span></div>
+                <div><strong>01</strong><span>digital twin</span></div>
+              </div>
+            </aside>
           </div>
-          <a className="hero-scroll" href="#about"><span>Scroll to explore</span><i aria-hidden="true" /></a>
         </section>
 
         <section className="ticker" aria-label="Focus areas">
@@ -423,7 +479,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section-wrap about-section" id="about">
+        <section className="section-wrap about" id="about">
           <div className="section-kicker reveal"><span>01</span><span>About the work</span></div>
           <div className="about-grid">
             <h2 className="reveal reveal-one">Curious about the whole system, not just the screen.</h2>
@@ -438,19 +494,24 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section-wrap journey-section" id="journey">
+        <section className="section-wrap journey" id="journey">
           <div className="section-kicker reveal"><span>02</span><span>Career journey</span></div>
           <div className="journey-intro">
             <h2 className="reveal reveal-one">A practice built in chapters.</h2>
             <p className="reveal reveal-two">Three environments. One consistent question: how do we make complex work easier to trust?</p>
           </div>
           <div className="timeline">
+            <div className="timeline-rail" aria-hidden="true" />
             {journey.map((role) => (
               <article className={`timeline-item ${role.current ? "is-current" : ""}`} key={role.company}>
-                <div className="timeline-marker"><span>{role.number}</span></div>
+                <div className="timeline-marker">{role.number}</div>
                 <div className="timeline-main">
                   <div className="timeline-heading">
-                    <div><p className="period">{role.period} {role.current && <span className="current-label">current</span>}</p><h3>{role.role}</h3><p className="company">{role.company} <span>/</span> {role.location}</p></div>
+                    <div>
+                      <p className="period">{role.period} {role.current && <span className="current-label">current</span>}</p>
+                      <h3>{role.role}</h3>
+                      <p className="company">{role.company} <span>/</span> {role.location}</p>
+                    </div>
                     <span className="timeline-arrow" aria-hidden="true">↗</span>
                   </div>
                   <p className="timeline-summary">{role.summary}</p>
@@ -461,79 +522,92 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="portfolio-section" id="portfolio">
+        <section className="portfolio" id="portfolio">
           <div className="section-wrap">
-            <div className="section-kicker section-kicker-light reveal"><span>03</span><span>Selected work</span></div>
-            <div className="portfolio-intro"><h2 className="reveal reveal-one">Work with a point of view.</h2><div className="portfolio-side"><p className="reveal reveal-two">A few systems I have helped make more legible, more resilient, and more useful.</p><div className="project-controls"><button type="button" onClick={() => cycleProject(-1)} aria-label="Previous project">←</button><span>{String(activeProjectIndex + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</span><button type="button" onClick={() => cycleProject(1)} aria-label="Next project">→</button></div></div></div>
-            <div className="project-stage">
-              {projects.map((project, index) => {
-                const position = (index - activeProjectIndex + projects.length) % projects.length;
-                const isActive = position === 0;
-                return (
-                <article
-                  className={`project-card ${project.tone} project-slot-${position}`}
-                  key={project.title}
-                  role="button"
-                  tabIndex={isActive ? 0 : -1}
-                  aria-haspopup="dialog"
-                  aria-label={`View details for ${project.title}`}
-                  aria-hidden={!isActive}
-                  onClick={() => isActive ? setSelectedProject(project) : setActiveProjectIndex(index)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      if (isActive) setSelectedProject(project);
-                      else setActiveProjectIndex(index);
-                    }
-                  }}
-                >
-                  <div className="project-content">
-                    <div className="project-top"><span>{project.index}</span><span>{project.label}</span></div>
-                    <h3>{project.title}</h3>
-                    <p>{project.copy}</p>
-                    <div className="project-impact"><span>Why it matters</span><p>{project.impact}</p></div>
-                    <div className="project-bottom"><span>{project.stack}</span><span className="card-arrow" aria-hidden="true">-&gt;</span></div>
-                  </div>
-                  <div className="project-art" aria-hidden="true"><span className="project-art-orbit" /><span className="project-art-line" /><span className="project-art-square" /><span className="project-art-dot" /></div>
-                </article>
-              )})}
+            <div className="section-kicker reveal"><span>03</span><span>Selected work</span></div>
+            <div className="portfolio-intro">
+              <h2 className="reveal reveal-one">Work with a point of view.</h2>
+              <div className="portfolio-side">
+                <p className="reveal reveal-two">A few systems I have helped make more legible, more resilient, and more useful.</p>
+                <div className="deck-controls">
+                  <button type="button" onClick={() => goToProject(activeProject - 1)} disabled={activeProject === 0} aria-label="Previous project">←</button>
+                  <span>{String(activeProject + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</span>
+                  <button type="button" onClick={() => goToProject(activeProject + 1)} disabled={activeProject === projects.length - 1} aria-label="Next project">→</button>
+                </div>
+              </div>
             </div>
+          </div>
+          <div className="deck" ref={deckRef}>
+            {projects.map((project, index) => (
+              <article className={`card ${project.tone}`} key={project.title} data-card-index={index}>
+                <div className="card-top"><span>{project.index}</span><span>{project.label}</span></div>
+                <h3>{project.title}</h3>
+                <p className="card-copy">{project.copy}</p>
+                <div className="card-impact">
+                  <span>Why it matters</span>
+                  <p>{project.impact}</p>
+                </div>
+                <div className="card-bottom">
+                  <span>{project.stack}</span>
+                  <span className="card-arrow" aria-hidden="true">-&gt;</span>
+                </div>
+                <div className="card-glow" aria-hidden="true" />
+                <button className="card-hit" type="button" aria-haspopup="dialog" onClick={() => setOpenProject(project)}>
+                  <span className="visually-hidden">View details for {project.title}</span>
+                </button>
+              </article>
+            ))}
           </div>
         </section>
 
-        {selectedProject && (
-          <div
-            className="project-modal-backdrop"
-            role="presentation"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setSelectedProject(null);
-            }}
-          >
-            <section className={`project-modal ${selectedProject.tone}`} role="dialog" aria-modal="true" aria-labelledby="project-modal-title" aria-describedby="project-modal-summary">
-              <div className="project-modal-top">
-                <span>{selectedProject.index} / {selectedProject.label}</span>
-                <button className="project-modal-close" ref={modalCloseRef} type="button" onClick={() => setSelectedProject(null)} aria-label="Close project details">Close <span aria-hidden="true">×</span></button>
-              </div>
-              <h2 id="project-modal-title">{selectedProject.title}</h2>
-              <p className="project-modal-summary" id="project-modal-summary">{selectedProject.detail}</p>
-              <div className="project-modal-grid">
-                <div className="project-modal-field"><span>My contribution</span><p>{selectedProject.contribution}</p></div>
-                <div className="project-modal-field"><span>Impact</span><p>{selectedProject.impact}</p></div>
-              </div>
-              <div className="project-modal-tools"><span>Tools &amp; technologies</span><div>{selectedProject.tools.map((tool) => <span key={tool}>{tool}</span>)}</div></div>
-            </section>
-          </div>
-        )}
-
-        <section className="section-wrap contact-section" id="contact">
+        <section className="section-wrap contact" id="contact">
           <div className="contact-card reveal">
-            <div className="contact-copy"><p className="eyebrow"><span className="status-dot" /> The next chapter</p><h2>Have a hard problem worth making clearer?</h2><p>Tell me what you are building, what is getting in the way, or what you want to explore next.</p></div>
-            <div className="contact-links"><a className="button button-primary" href={emailHref} target="_blank" rel="noreferrer">Email Emmanuel <span aria-hidden="true">-&gt;</span></a><a className="text-link" href="https://github.com/Ripeplantain" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
+            <div className="contact-copy">
+              <p className="eyebrow"><span className="status-dot" /> The next chapter</p>
+              <h2>Have a hard problem worth making clearer?</h2>
+              <p>Tell me what you are building, what is getting in the way, or what you want to explore next.</p>
+            </div>
+            <div className="contact-links">
+              <a className="button button-primary" href={emailHref} target="_blank" rel="noreferrer">Email Emmanuel <span aria-hidden="true">-&gt;</span></a>
+              <a className="text-link" href="https://github.com/Ripeplantain" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className="footer section-wrap"><a className="footer-top" href="#home" aria-label="Back to top">↑</a><span>Emmanuel Gyang / Software Engineer</span><span>Built in Accra <span aria-hidden="true">+</span> for what&apos;s next</span><span>© 2026</span></footer>
+      <dialog
+        className={`project-dialog ${openProject?.tone ?? ""}`}
+        ref={projectDialogRef}
+        aria-labelledby="project-dialog-title"
+        onClose={() => setOpenProject(null)}
+        {...{ closedby: "any" }}
+      >
+        {openProject && (
+          <>
+            <div className="dialog-top">
+              <span>{openProject.index} / {openProject.label}</span>
+              <button className="dialog-close" type="button" onClick={() => projectDialogRef.current?.close()}>Close <span aria-hidden="true">×</span></button>
+            </div>
+            <h2 id="project-dialog-title">{openProject.title}</h2>
+            <p className="dialog-summary">{openProject.detail}</p>
+            <div className="dialog-grid">
+              <div className="dialog-field"><span>My contribution</span><p>{openProject.contribution}</p></div>
+              <div className="dialog-field"><span>Impact</span><p>{openProject.impact}</p></div>
+            </div>
+            <div className="dialog-tools">
+              <span>Tools &amp; technologies</span>
+              <div className="tag-row">{openProject.tools.map((tool) => <span key={tool}>{tool}</span>)}</div>
+            </div>
+          </>
+        )}
+      </dialog>
+
+      <footer className="footer section-wrap">
+        <span>Emmanuel Gyang / Software Engineer</span>
+        <span>Built in Accra <span aria-hidden="true">+</span> for what&apos;s next</span>
+        <span>© 2026</span>
+        <a className="footer-top" href="#home" aria-label="Back to top">↑</a>
+      </footer>
       <DigitalTwin />
     </div>
   );
