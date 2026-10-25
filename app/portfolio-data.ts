@@ -57,9 +57,20 @@ export const projects: Project[] = [
       "Built the lender-facing workflows: borrower search, identity and credit-report views, dashboard totals, non-performing loan ratio displays, CSV upload flows with templates and error feedback, transaction and repayment views, and trusted-lender access states.",
     outcome:
       "Credit data now moves through one continuous submission-to-retrieval workflow, giving lenders complete, readable information at the point of decision.",
-    stack: ["Vue", "Nuxt", "REST APIs", "CSV pipelines"],
+    stack: [
+      "Nuxt 4",
+      "Vue 3",
+      "TypeScript",
+      "Pinia",
+      "Axios",
+      "AWS S3",
+      "OAuth 2.0",
+      "Vitest",
+      "Playwright",
+      "Azure DevOps",
+    ],
     ratio: "16 / 10",
-    plate: "Lenders Portal — borrower search and credit report view",
+    plate: "MyCreditScore — understanding what builds a credit score",
   },
   {
     id: "agency-backoffice",
@@ -70,60 +81,82 @@ export const projects: Project[] = [
     problem:
       "Agency teams run day-to-day operations inside the wider credit-data platform, and their portal has to stay wired to the services underneath it.",
     contribution:
-      "Delivered both frontend and backend features for the Agency Portal, connecting agency workflows to APIs and supporting services, and worked across teams on authentication, access controls, automated testing and Azure DevOps releases.",
+      "Built the agency dashboard, lender, merchant and staff administration, report-fee and maker-checker approval flows, and consumer, business and BNPL credit-report experiences. Engineered bulk report processing as resilient server-side jobs with PostgreSQL state, S3 uploads, ZIP, CSV and PDF exports, live progress and retry handling; also migrated authentication, enforced role-based access and expanded automated test coverage.",
     outcome:
       "Complex agency operations read as one coherent backoffice rather than a set of disconnected screens.",
-    stack: ["Vue", "Nuxt", "REST APIs", "Access controls", "Azure DevOps"],
+    stack: [
+      "Nuxt 4",
+      "Vue 3",
+      "TypeScript",
+      "Pinia",
+      "PostgreSQL",
+      "AWS S3",
+      "Socket.IO",
+      "ExcelJS",
+      "Vitest",
+      "Azure DevOps",
+    ],
     ratio: "16 / 10",
-    plate: "Agency Backoffice — operations queue",
+    plate: "MyCreditScore — credit report overview",
   },
   {
     id: "paysmallsmall",
     index: "03",
     name: "PaySmallSmall Backoffice",
-    context: "Hubtel · Digital payments and overdrafts",
+    context: "Hubtel · PaySmallSmall for Albrim Microfinance",
     kind: "production",
     problem:
-      "PaySmallSmall is a digital payment and overdraft product for Albrim Microfinance. Financiers and Hubtel’s internal operations teams both need to support it, and they need different things from it.",
+      "PaySmallSmall is Albrim Microfinance’s digital payment and overdraft platform. Its backoffice has to keep deposits, disbursements, repayments, defaults, recoveries and field operations visible as one connected loan lifecycle.",
     contribution:
-      "Built the backoffice applications for both groups, with portal interfaces integrated into the product’s supporting services.",
+      "Built and evolved the shared PaySmallSmall and Albrim backoffice: operational dashboards for daily performance, disbursements, paybacks, defaults, non-performing loans and spend; workflows for accounts, transactions, approvals, recoveries and agent management; and downloadable reports and exports. Structured both operational views on reusable Nuxt layers, integrated authentication, role permissions, APIs and event tracking, and expanded automated test coverage.",
     outcome:
-      "Financiers and operations teams each got a focused surface for the payment and overdraft workflows they are accountable for.",
+      "Albrim and Hubtel teams can operate from one coherent system, follow money from deposit through repayment or recovery, and act on risk and exceptions without piecing the loan book together across tools.",
     stack: ["Vue", "Nuxt", "Payment integrations", "Internal tooling"],
     ratio: "16 / 10",
-    plate: "PaySmallSmall — financier backoffice",
+    plate: "PaySmallSmall Backoffice — sign-in at paysmallsmall.hubtel.com",
   },
   {
     id: "merchant-invoicing",
     index: "04",
     name: "Merchant Invoicing Platform",
-    context: "Hubtel · Merchant payments",
+    context: "Hubtel · Custom Approvals",
     kind: "production",
     problem:
-      "A merchant’s customer needs to find their invoice, pay it, and get a receipt — across tenant subdomains, without the payment or the session being the weak point.",
+      "Merchant customers need one secure place to discover invoices, review attachments, pay and retrieve receipts, while each tenant retains its own subdomain, identity and branding.",
     contribution:
-      "Built the invoice listing, detail, payment-status and receipt experiences in Nuxt 3 and Vue 3, with Google and Microsoft OAuth, secure sessions across tenant subdomains, authentication and bot-protection checks, and card payments verified by OTP and 3DS through Hubtel Unified Checkout.",
+      "Built the multi-tenant customer portal across invoice and receipt lists, invoice details, shared payment links, customer updates, attachments, pay-in slips and payment-status experiences. Engineered centralized Google and Microsoft OAuth with secure cross-subdomain sessions, tenant-aware routing and branding, Unified Checkout handoff, in-app card authentication with OTP and 3DS, Turnstile protection, product analytics and automated tests.",
     outcome:
-      "Invoice discovery, payment and receipt became a single secure journey for merchant customers.",
+      "Customers can move from invoice discovery to verified payment and receipt in one branded journey, while new merchant and public-sector tenants can reuse the same authentication, routing and payment foundation.",
     stack: ["Nuxt 3", "Vue 3", "OAuth", "OTP / 3DS", "Unified Checkout"],
     ratio: "16 / 10",
-    plate: "Merchant Invoicing — checkout and receipt",
+    plate: "Clifton Homes — invoice detail and payment status",
   },
   {
     id: "starline-hr",
     index: "05",
     name: "Starline HR",
-    context: "Startup · Applicant tracking",
+    context: "Startup · Multi-tenant applicant tracking",
     kind: "personal",
     problem:
-      "Hiring scatters across email threads, spreadsheets and private notes. Scheduling drags on for days, and nobody on the panel can see where a candidate actually stands.",
+      "Hiring work is often scattered across inboxes, calendars, spreadsheets and disconnected candidate records. Teams need one place to move applicants from application to interview and decision without losing context or control.",
     contribution:
-      "I work across most of it, but the part that is mine is where the hiring actually happens: booking interviews and keeping them in step with everyone's calendar, the video-call links, the reminders that chase a reply, candidate shortlists with quick résumé previews, the score that ranks applicants against a role, and the permissions that decide who on a hiring team sees what. I also set up how the product gets shipped, and wrote the working agreement the team's AI coding agents follow.",
+      "Built core hiring workflows across the multi-tenant ATS: interview scheduling and rescheduling with calendar and video-call integrations, notifications and candidate acceptance, bulk candidate actions, résumé quick view, job-match scoring, team roles and permissions, and reports and analytics. Also built and operated the delivery foundation—Dockerized applications, database migrations, CI/CD and server workflows—and wrote the engineering guidance used by coding agents across the monorepo.",
     outcome:
-      "A hiring team works one shared pipeline instead of reassembling it from inboxes, and can see where every candidate stands without having to ask.",
-    stack: ["Next.js", "TypeScript", "PostgreSQL", "Docker", "CI/CD"],
+      "Hiring teams can manage candidates, interviews and decisions in one shared system, while each organization keeps its data, permissions and public careers experience isolated.",
+    stack: [
+      "Next.js 16",
+      "React 19",
+      "TypeScript",
+      "tRPC",
+      "Drizzle ORM",
+      "PostgreSQL",
+      "Redis",
+      "Astro",
+      "Docker",
+      "GitHub Actions",
+    ],
     ratio: "16 / 10",
-    plate: "Starline HR — candidate pipeline",
+    plate: "Starline HR — modern hiring platform",
     link: { href: "https://starlinehr.com/", label: "starlinehr.com" },
   },
 ];
@@ -148,7 +181,7 @@ export const roles: Role[] = [
     period: "March 2024 — present",
     start: "2024",
     end: "now",
-    title: "Front-End Engineer",
+    title: "Software Engineer",
     company: "Hubtel Limited",
     location: "Accra, Ghana",
     summary:
@@ -244,11 +277,11 @@ export const capabilities: Capability[] = [
 ];
 
 export const about = {
-  heading: "Curious about the whole system, not just the screen.",
+  heading: "I build software people can depend on.",
   paragraphs: [
-    "I work where product thinking meets infrastructure: understanding the need, shaping the model, and shipping something that can keep its footing when the stakes get higher.",
-    "Most of what I build carries money or the data people are judged by. Credit bureau submissions, lending portals, overdraft operations, card payments verified by OTP and 3DS. That work has a particular discipline to it — validation, audit logging, encrypted transmission and access control are not features you add later.",
-    "My path moved from university operations to agency platforms and now enterprise financial products. Each step made the same thing clearer: good software earns trust through its details.",
+    "I like understanding the real problem behind a product, then following it all the way from an idea to something people can use with confidence.",
+    "Much of my work sits behind everyday financial decisions—checking credit, making payments, managing loans and keeping operations moving. The technology matters, but what matters more is that people can rely on it when the stakes are real.",
+    "I started by improving university operations, moved into agency work, and now build production financial products. Each step has reinforced the same belief: good software should make complicated work feel clear, dependable and human.",
   ],
   principles: [
     "Build the model before the screen.",

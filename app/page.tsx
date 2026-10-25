@@ -1,6 +1,7 @@
 "use client";
 
 import Joojo from "./joojo";
+import { ProfileVisual, ProjectVisual } from "./project-visual";
 import { useActiveSection, useReveal } from "./use-page";
 import {
   about,
@@ -88,6 +89,7 @@ export default function DarkCinematic() {
           {projects.map((project, index) => (
             <article className={`eg-frame ${index % 2 === 1 ? "is-flipped" : ""}`} key={project.id} data-reveal>
               <figure className="eg-plate" style={{ aspectRatio: project.ratio }}>
+                <ProjectVisual projectId={project.id} />
                 <figcaption>{project.plate}</figcaption>
               </figure>
               <div className="eg-frame-body">
@@ -136,7 +138,8 @@ export default function DarkCinematic() {
               </ul>
             </div>
             <figure className="eg-plate eg-portrait" style={{ aspectRatio: "4 / 5" }} data-reveal>
-              <figcaption>Portrait — {profile.name}, Accra</figcaption>
+              <ProfileVisual />
+              <figcaption>Profile — {profile.name}, Accra</figcaption>
             </figure>
           </div>
         </section>
