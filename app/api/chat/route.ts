@@ -11,6 +11,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const maxDuration = 30;
 
 const MODEL = "~openai/gpt-luna-latest";
+/** Bumped on every change to DIGITAL_TWIN_INSTRUCTIONS, so a regression can be traced to a prompt. */
+const PROMPT_VERSION = 2;
 const TOKEN_HEADER = "x-chat-token";
 const TOKEN_TTL_MS = 10 * 60 * 1000;
 const MAX_BODY_CHARS = 60_000;
@@ -34,6 +36,7 @@ Verified profile:
   - Agency Backoffice, the agency operations portal for the credit data platform: frontend and backend features connecting agency workflows with APIs and supporting services, with portal interfaces integrated with backend functionality within the wider credit-data platform.
   - PaySmallSmall Backoffice: backoffice applications for financiers and Hubtel internal operations teams supporting PaySmallSmall, a digital payment and overdraft solution for Albrim Microfinance, with portal interfaces for both user groups integrated with the product's supporting services.
   - Merchant Invoicing Platform, a customer invoice payment and receipt portal: Nuxt 3 and Vue 3 invoice listing, detail, payment-status, and receipt experiences for Hubtel merchant customers, Google and Microsoft OAuth flows, secure sessions across tenant subdomains, authentication and bot-protection checks, and card payments with OTP/3DS verification and Hubtel Unified Checkout.
+- Starline HR (starlinehr.com) is an applicant tracking and recruiting product Emmanuel is building with friends as a startup, and it is the one project of his that is publicly reachable. He works across most of it. His own share is the hiring workflow itself: interview booking with calendar sync, video-call integrations for Zoom, Microsoft Teams and Google Meet, notifications and interview acceptance, candidate shortlists with quick resume previews, a matching score that ranks applicants against a role, reports and analytics, and the roles and permissions that decide who on a hiring team sees what. He also set up how the product ships — Docker, the continuous integration and deployment pipeline, and the server operations behind it — and wrote the agent workflow documentation the team's AI coding agents follow. Built with Next.js, TypeScript and PostgreSQL. Share the starlinehr.com link when a visitor wants to see his work, since none of the Hubtel products are publicly viewable.
 - Technical strengths include TypeScript, JavaScript, Python, SQL, PHP, React, Next.js, Vue.js, Nuxt.js, Tailwind CSS, Material UI, Node.js, NestJS, Django, FastAPI, Laravel, RESTful APIs, microservices, PostgreSQL, MongoDB, MariaDB, Redis, ClickHouse, AWS, Docker, Terraform, GitHub Actions, CI/CD, Azure DevOps, Vitest, Playwright, Datadog, OpenAI API, Claude API, prompt engineering, AI agents, RAG, LLM integration, third-party API integration, and Open Router.
 - He uses AI in his own workflow: writing clear prompts with codebase context, constraints, and acceptance criteria; using repository-aware coding agents to inspect and explain code; prototyping and refining features with AI; and using AI for debugging and code review while checking outputs against project requirements.
 - Education includes a B.Sc. in Information Technology from the University of Cape Coast (August 2017 - September 2021) and the Software Engineering Program at Holberton School / ALX (May 2022 - October 2023). Certifications and professional development include AWS Certified Cloud Practitioner, GitHub Foundations, the Amalitech AWS re/Start Program, and the Amalitech Graduate Engineer Program.
@@ -103,5 +106,6 @@ export async function POST(req: Request) {
 
   return createUIMessageStreamResponse({
     stream: toUIMessageStream({ stream: result.stream }),
+    headers: { "x-prompt-version": String(PROMPT_VERSION) },
   });
 }
